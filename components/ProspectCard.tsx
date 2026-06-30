@@ -15,8 +15,8 @@ export default function ProspectCard({ prospect, onChange, validationErrors }: P
   return (
     <div className="card space-y-4">
       <div>
-        <h2 className="text-[17px] font-semibold text-ink tracking-tight">Prospect</h2>
-        <p className="text-[13px] text-ink-faint mt-0.5">Enter the company you want to research and outreach to.</p>
+        <h2 className="text-[17px] font-semibold text-ink tracking-tight dark:text-[#f6f5f4]">Prospect</h2>
+        <p className="text-[13px] text-ink-faint mt-0.5 dark:text-[#a39e98]">Enter the company you want to research and outreach to.</p>
       </div>
 
       <div>

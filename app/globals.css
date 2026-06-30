@@ -9,8 +9,7 @@
   }
 
   body {
-    background-color: #f6f5f4;
-    color: #000000;
+    @apply bg-canvas-soft text-ink dark:bg-[#191918] dark:text-[#f6f5f4];
   }
 
   *:focus-visible {
@@ -21,17 +20,20 @@
 
 @layer components {
   .card {
-    @apply bg-canvas border border-hairline rounded-lg p-6;
+    @apply bg-canvas border border-hairline rounded-lg p-4 sm:p-6
+           dark:bg-[#262524] dark:border-[#3d3a36];
   }
 
   .label {
-    @apply block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5;
+    @apply block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5
+           dark:text-[#a39e98];
   }
 
   .input {
     @apply w-full bg-canvas border border-hairline rounded-xs px-3 py-1.5 text-[15px] text-ink placeholder:text-ink-faint
            focus:outline-none focus:border-notion-blue focus:ring-1 focus:ring-notion-blue/20
-           transition-colors duration-150;
+           transition-colors duration-150
+           dark:bg-[#1f1e1d] dark:border-[#3d3a36] dark:text-[#f6f5f4] dark:placeholder:text-[#615d59];
   }
 
   .input-error {
@@ -39,14 +41,22 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 bg-notion-blue hover:bg-notion-blue-dark active:scale-[0.97]
+    @apply inline-flex items-center justify-center gap-2 bg-notion-blue hover:bg-notion-blue-dark active:scale-[0.97]
            text-white text-[16px] font-medium px-6 py-2.5 rounded-full
            transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center gap-2 bg-canvas border border-hairline hover:border-ink-faint
+    @apply inline-flex items-center justify-center gap-2 bg-canvas border border-hairline hover:border-ink-faint
            text-ink text-[16px] font-medium px-6 py-2.5 rounded-full
-           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+           dark:bg-[#262524] dark:border-[#3d3a36] dark:text-[#f6f5f4] dark:hover:border-[#615d59];
+  }
+
+  .btn-utility {
+    @apply inline-flex items-center justify-center gap-2 bg-canvas border border-hairline hover:border-ink-faint
+           text-ink text-[14px] font-medium px-4 py-2 rounded-md
+           transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+           dark:bg-[#262524] dark:border-[#3d3a36] dark:text-[#f6f5f4] dark:hover:border-[#615d59];
   }
 }

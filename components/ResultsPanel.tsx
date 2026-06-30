@@ -10,9 +10,9 @@ interface Props {
 }
 
 const FIT_STYLES: Record<Analysis['fit'], { badge: string; label: string }> = {
-  High: { badge: 'bg-fit-high/10 text-fit-high border-fit-high/20', label: 'High fit' },
-  Medium: { badge: 'bg-fit-medium/10 text-fit-medium border-fit-medium/20', label: 'Medium fit' },
-  Low: { badge: 'bg-fit-low/10 text-fit-low border-fit-low/20', label: 'Low fit' },
+  High: { badge: 'bg-fit-high/10 text-fit-high border-fit-high/30 dark:bg-fit-high/20 dark:border-fit-high/40', label: 'High fit' },
+  Medium: { badge: 'bg-fit-medium/10 text-fit-medium border-fit-medium/30 dark:bg-fit-medium/20 dark:border-fit-medium/40', label: 'Medium fit' },
+  Low: { badge: 'bg-fit-low/10 text-fit-low border-fit-low/30 dark:bg-fit-low/20 dark:border-fit-low/40', label: 'Low fit' },
 }
 
 function SnapshotField({ label, value }: { label: string; value: string }) {
@@ -73,7 +73,7 @@ export default function ResultsPanel({ intel, analysis, email }: Props) {
       {/* Snapshot grid */}
       <div className="card">
         <h3 className="text-[13px] font-semibold text-ink-muted uppercase tracking-wide mb-4">Company snapshot</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <SnapshotField label="Industry" value={intel.industry} />
           <SnapshotField label="Size" value={intel.size} />
           <SnapshotField label="Funding" value={intel.funding} />
@@ -128,7 +128,7 @@ export default function ResultsPanel({ intel, analysis, email }: Props) {
           </button>
         </div>
 
-        <div className="rounded-lg bg-canvas-soft border border-hairline p-4 space-y-3">
+        <div className="rounded-lg bg-canvas-soft border border-hairline p-4 space-y-3 dark:bg-[#1f1e1d] dark:border-[#3d3a36]">
           <div>
             <p className="text-[11px] font-semibold text-ink-faint uppercase tracking-wide">Subject</p>
             <p className="text-[14px] font-medium text-ink mt-1">{email.subject}</p>

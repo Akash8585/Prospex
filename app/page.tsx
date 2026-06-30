@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Header from '@/components/Header'
 import NotionCard from '@/components/NotionCard'
 import ICPCard from '@/components/ICPCard'
@@ -10,6 +10,7 @@ import StatusBar from '@/components/StatusBar'
 import ResultsPanel from '@/components/ResultsPanel'
 import SuccessBanner from '@/components/SuccessBanner'
 import ErrorBanner from '@/components/ErrorBanner'
+import { DEMO_ICP, DEMO_PROSPECT } from '@/lib/demo-data'
 import {
   ICP,
   Prospect,
@@ -70,12 +71,39 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [email, setEmail] = useState<EmailDraft | null>(null)
   const [notionPageUrl, setNotionPageUrl] = useState<string | null>(null)
-  const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof Prospect, string>>>({})
+  const [prospectErrors, setProspectErrors] = useState<Partial<Record<keyof Prospect, string>>>({})
+  const [icpErrors, setIcpErrors] = useState<Partial<Record<keyof ICP, string>>>({})
 
   const resultsRef = useRef<HTMLDivElement>(null)
 
   const canRun = prospect.companyName.trim().length > 0 && icp.whatYouSell.trim().length > 0
   const hasNotionCredentials = notion.token.trim().length > 0 && notion.databaseId.trim().length > 0
+
+  useEffect(() => {
+    document.title = isRunning ? 'Running… | Prospex' : 'Prospex'
+  }, [isRunning])
+
+  function handleIcpChange(next: ICP) {
+    setIcp(next)
+    if (next.whatYouSell.trim() && icpErrors.whatYouSell) {
+      setIcpErrors((prev) => ({ ...prev, whatYouSell: undefined }))
+    }
+  }
+
+  function handleProspectChange(next: Prospect) {
+    setProspect(next)
+    if (next.companyName.trim() && prospectErrors.companyName) {
+      setProspectErrors((prev) => ({ ...prev, companyName: undefined }))
+    }
+  }
+
+  function handleLoadDemo() {
+    setIcp(DEMO_ICP)
+    setProspect(DEMO_PROSPECT)
+    setProspectErrors({})
+    setIcpErrors({})
+    setError(null)
+  }
 
   async function callStep<T>(
     url: string,
@@ -113,13 +141,20 @@ export default function Home() {
   }
 
   async function runPipeline() {
-    const vErrors: Partial<Record<keyof Prospect, string>> = {}
-    if (!prospect.companyName.trim()) vErrors.companyName = 'Company name is required'
-    if (Object.keys(vErrors).length > 0) {
-      setValidationErrors(vErrors)
+    const nextProspectErrors: Partial<Record<keyof Prospect, string>> = {}
+    const nextIcpErrors: Partial<Record<keyof ICP, string>> = {}
+
+    if (!prospect.companyName.trim()) nextProspectErrors.companyName = 'Company name is required'
+    if (!icp.whatYouSell.trim()) nextIcpErrors.whatYouSell = 'What you sell is required'
+
+    if (Object.keys(nextProspectErrors).length > 0 || Object.keys(nextIcpErrors).length > 0) {
+      setProspectErrors(nextProspectErrors)
+      setIcpErrors(nextIcpErrors)
       return
     }
-    setValidationErrors({})
+
+    setProspectErrors({})
+    setIcpErrors({})
 
     setIsRunning(true)
     setHasRun(true)
@@ -132,7 +167,6 @@ export default function Home() {
     const reset = INITIAL_STEPS.map((s) => ({ ...s, status: 'pending' as StepStatus }))
     setSteps(reset)
 
-    // Step 1: Research
     let currentSteps = reset
     const r1 = await callStep<Intel>('/api/research', { companyName: prospect.companyName }, 0, currentSteps)
     currentSteps = r1.steps
@@ -144,7 +178,6 @@ export default function Home() {
     const intelData = r1.data
     setIntel(intelData)
 
-    // Step 2: Analyze
     const r2 = await callStep<Analysis>('/api/analyze', { intel: intelData, icp }, 1, currentSteps)
     currentSteps = r2.steps
     if (!r2.ok || !r2.data) {
@@ -155,7 +188,6 @@ export default function Home() {
     const analysisData = r2.data
     setAnalysis(analysisData)
 
-    // Step 3: Draft email
     const r3 = await callStep<EmailDraft>(
       '/api/draft',
       {
@@ -179,7 +211,6 @@ export default function Home() {
     const emailData = r3.data
     setEmail(emailData)
 
-    // Step 4: Notion write (optional — skip if credentials not provided)
     if (hasNotionCredentials) {
       const r4 = await callStep<{ url: string }>(
         '/api/notion',
@@ -198,11 +229,9 @@ export default function Home() {
         3,
         currentSteps
       )
-      currentSteps = r4.steps
       if (r4.ok && r4.data?.url) {
         setNotionPageUrl(r4.data.url)
       }
-      // Notion failure is non-fatal — results stay visible, error shown on status bar step
     }
 
     setIsRunning(false)
@@ -221,31 +250,33 @@ export default function Home() {
     setAnalysis(null)
     setEmail(null)
     setNotionPageUrl(null)
-    setValidationErrors({})
+    setProspectErrors({})
+    setIcpErrors({})
   }
 
   const hasResults = intel && analysis && email
 
   return (
-    <div className="min-h-screen bg-canvas-soft">
+    <div className="min-h-screen bg-canvas-soft dark:bg-[#191918]">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
         <NotionCard notion={notion} onChange={setNotion} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ICPCard icp={icp} onChange={setIcp} />
+          <ICPCard icp={icp} onChange={handleIcpChange} validationErrors={icpErrors} />
           <ProspectCard
             prospect={prospect}
-            onChange={setProspect}
-            validationErrors={validationErrors}
+            onChange={handleProspectChange}
+            validationErrors={prospectErrors}
           />
         </div>
 
         <ActionRow
           onRun={runPipeline}
           onClear={handleClear}
+          onLoadDemo={handleLoadDemo}
           isRunning={isRunning}
           canRun={canRun}
         />
@@ -265,8 +296,8 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-8 border-t border-hairline mt-8">
-        <p className="text-[13px] text-ink-faint">
+      <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-8 border-t border-hairline dark:border-[#3d3a36] mt-8">
+        <p className="text-[13px] text-ink-faint dark:text-[#a39e98]">
           Prospex — AI-powered B2B prospect research. Built with Claude Sonnet 4.6 + Notion API.
         </p>
       </footer>

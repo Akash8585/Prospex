@@ -5,28 +5,34 @@ import { ICP } from '@/lib/types'
 interface Props {
   icp: ICP
   onChange: (icp: ICP) => void
+  validationErrors: Partial<Record<keyof ICP, string>>
 }
 
-export default function ICPCard({ icp, onChange }: Props) {
+export default function ICPCard({ icp, onChange, validationErrors }: Props) {
   const set = (key: keyof ICP) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     onChange({ ...icp, [key]: e.target.value })
 
   return (
     <div className="card space-y-4">
       <div>
-        <h2 className="text-[17px] font-semibold text-ink tracking-tight">Your ICP</h2>
-        <p className="text-[13px] text-ink-faint mt-0.5">Define your ideal customer so the agent can score prospects against it.</p>
+        <h2 className="text-[17px] font-semibold text-ink tracking-tight dark:text-[#f6f5f4]">Your ICP</h2>
+        <p className="text-[13px] text-ink-faint mt-0.5 dark:text-[#a39e98]">Define your ideal customer so the agent can score prospects against it.</p>
       </div>
 
       <div>
-        <label className="label">What you sell</label>
+        <label className="label">
+          What you sell <span className="text-fit-low normal-case font-normal">*</span>
+        </label>
         <textarea
-          className="input resize-none"
+          className={`input resize-none ${validationErrors.whatYouSell ? 'input-error' : ''}`}
           rows={2}
           placeholder="e.g. Sales automation software for B2B SaaS teams"
           value={icp.whatYouSell}
           onChange={set('whatYouSell')}
         />
+        {validationErrors.whatYouSell && (
+          <p className="text-[12px] text-fit-low mt-1">{validationErrors.whatYouSell}</p>
+        )}
       </div>
 
       <div>
@@ -51,7 +57,7 @@ export default function ICPCard({ icp, onChange }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="label">Your name</label>
           <input

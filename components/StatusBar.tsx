@@ -46,7 +46,7 @@ function StepIcon({ status }: { status: PipelineStep['status'] }) {
 export default function StatusBar({ steps }: Props) {
   return (
     <div className="card">
-      <h3 className="text-[13px] font-semibold text-ink-muted uppercase tracking-wide mb-4">
+      <h3 className="text-[13px] font-semibold text-ink-muted uppercase tracking-wide mb-4 dark:text-[#a39e98]">
         Pipeline status
       </h3>
       <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-0">
@@ -91,7 +91,7 @@ export default function StatusBar({ steps }: Props) {
                 {step.label}
               </p>
               {step.errorMessage && (
-                <p className="text-[11px] text-fit-low mt-0.5 leading-tight max-w-[120px]">
+                <p className="text-[11px] text-fit-low mt-0.5 leading-tight max-w-full sm:max-w-[120px]">
                   {step.errorMessage}
                 </p>
               )}
