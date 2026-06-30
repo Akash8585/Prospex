@@ -155,7 +155,7 @@ lib/                    # Shared types and demo data
 
 ## Demo checklist
 
-Before submitting your challenge demo:
+Before going live, verify end-to-end:
 
 - [ ] Load demo → Run against **Linear** or **Razorpay**
 - [ ] Confirm intel, fit score, pain points, and email draft appear
