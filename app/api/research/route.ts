@@ -23,8 +23,9 @@ export async function POST(req: Request) {
       max_tokens: 2048,
       system:
         'You are a B2B sales intelligence researcher. Use web search to find current, accurate information. Always respond with valid JSON only — no markdown fences, no explanation, no preamble.',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }] as any,
+      tools: [
+        { type: 'web_search_20250305', name: 'web_search' },
+      ] as Anthropic.MessageCreateParams['tools'],
       messages: [
         {
           role: 'user',
