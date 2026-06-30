@@ -42,6 +42,11 @@ export interface EmailDraft {
   body: string
 }
 
+export interface NotionConfig {
+  token: string
+  databaseId: string
+}
+
 export interface PipelineResults {
   intel: Intel
   analysis: Analysis

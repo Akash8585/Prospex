@@ -2,15 +2,18 @@
 
 import { useRef, useState } from 'react'
 import Header from '@/components/Header'
+import NotionCard from '@/components/NotionCard'
 import ICPCard from '@/components/ICPCard'
 import ProspectCard from '@/components/ProspectCard'
 import ActionRow from '@/components/ActionRow'
 import StatusBar from '@/components/StatusBar'
 import ResultsPanel from '@/components/ResultsPanel'
+import SuccessBanner from '@/components/SuccessBanner'
 import ErrorBanner from '@/components/ErrorBanner'
 import {
   ICP,
   Prospect,
+  NotionConfig,
   Intel,
   Analysis,
   EmailDraft,
@@ -39,6 +42,11 @@ const INITIAL_PROSPECT: Prospect = {
   contactRole: '',
 }
 
+const INITIAL_NOTION: NotionConfig = {
+  token: '',
+  databaseId: '',
+}
+
 function updateStep(
   steps: PipelineStep[],
   index: number,
@@ -53,6 +61,7 @@ function updateStep(
 export default function Home() {
   const [icp, setIcp] = useState<ICP>(INITIAL_ICP)
   const [prospect, setProspect] = useState<Prospect>(INITIAL_PROSPECT)
+  const [notion, setNotion] = useState<NotionConfig>(INITIAL_NOTION)
   const [steps, setSteps] = useState<PipelineStep[]>(INITIAL_STEPS)
   const [isRunning, setIsRunning] = useState(false)
   const [hasRun, setHasRun] = useState(false)
@@ -60,11 +69,13 @@ export default function Home() {
   const [intel, setIntel] = useState<Intel | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [email, setEmail] = useState<EmailDraft | null>(null)
+  const [notionPageUrl, setNotionPageUrl] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<Partial<Record<keyof Prospect, string>>>({})
 
   const resultsRef = useRef<HTMLDivElement>(null)
 
   const canRun = prospect.companyName.trim().length > 0 && icp.whatYouSell.trim().length > 0
+  const hasNotionCredentials = notion.token.trim().length > 0 && notion.databaseId.trim().length > 0
 
   async function callStep<T>(
     url: string,
@@ -116,6 +127,7 @@ export default function Home() {
     setIntel(null)
     setAnalysis(null)
     setEmail(null)
+    setNotionPageUrl(null)
 
     const reset = INITIAL_STEPS.map((s) => ({ ...s, status: 'pending' as StepStatus }))
     setSteps(reset)
@@ -164,13 +176,37 @@ export default function Home() {
       setIsRunning(false)
       return
     }
-    setEmail(r3.data)
+    const emailData = r3.data
+    setEmail(emailData)
 
-    // Step 4: Notion (Phase 2 — stays pending for now)
+    // Step 4: Notion write (optional — skip if credentials not provided)
+    if (hasNotionCredentials) {
+      const r4 = await callStep<{ url: string }>(
+        '/api/notion',
+        {
+          notionToken: notion.token,
+          databaseId: notion.databaseId,
+          companyName: prospect.companyName,
+          industry: intelData.industry,
+          size: intelData.size,
+          fit: analysisData.fit,
+          summary: analysisData.summary,
+          painPoints: analysisData.painPoints,
+          emailSubject: emailData.subject,
+          emailBody: emailData.body,
+        },
+        3,
+        currentSteps
+      )
+      currentSteps = r4.steps
+      if (r4.ok && r4.data?.url) {
+        setNotionPageUrl(r4.data.url)
+      }
+      // Notion failure is non-fatal — results stay visible, error shown on status bar step
+    }
 
     setIsRunning(false)
 
-    // Smooth scroll to results
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
@@ -184,6 +220,7 @@ export default function Home() {
     setIntel(null)
     setAnalysis(null)
     setEmail(null)
+    setNotionPageUrl(null)
     setValidationErrors({})
   }
 
@@ -195,7 +232,8 @@ export default function Home() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-        {/* Config cards */}
+        <NotionCard notion={notion} onChange={setNotion} />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ICPCard icp={icp} onChange={setIcp} />
           <ProspectCard
@@ -205,7 +243,6 @@ export default function Home() {
           />
         </div>
 
-        {/* Action row */}
         <ActionRow
           onRun={runPipeline}
           onClear={handleClear}
@@ -213,15 +250,14 @@ export default function Home() {
           canRun={canRun}
         />
 
-        {/* Error banner */}
         {error && (
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}
 
-        {/* Status bar — shown once a run has started */}
         {hasRun && <StatusBar steps={steps} />}
 
-        {/* Results panel — shown when all 3 steps complete */}
+        {notionPageUrl && <SuccessBanner url={notionPageUrl} />}
+
         {hasResults && (
           <div ref={resultsRef}>
             <ResultsPanel intel={intel} analysis={analysis} email={email} />
