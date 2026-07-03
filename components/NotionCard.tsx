@@ -55,14 +55,15 @@ export default function NotionCard({ notion, onChange }: Props) {
           autoComplete="off"
         />
         <p className="text-[12px] text-ink-faint mt-1.5 leading-relaxed">
-          Open your CRM database in Notion, copy the ID from the URL (32-character string after the workspace name),
-          then share the database with your integration via ··· → Add connections.
+          Paste your CRM database URL (any empty Notion database works). Share it with your integration:
+          ··· → Connections → select your integration. Prospex creates the CRM columns automatically.
         </p>
       </div>
 
       <div className="pt-1 border-t border-hairline dark:border-[#3d3a36]">
         <p className="text-[12px] text-ink-faint leading-relaxed dark:text-[#a39e98]">
-          Required columns: Name, Status, Industry, Company size, ICP fit, Research summary.
+          Token + database URL is all you need. Connect the integration to the database in Notion (··· → Connections).
+          Prospex auto-creates Status, Industry, Company size, ICP fit, and Research summary columns on first run.
           Leave blank to skip Notion write — results still appear in the app.
         </p>
       </div>

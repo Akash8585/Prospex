@@ -1,14 +1,5 @@
 import { NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
-
-function extractJSON(text: string): string {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/)
-  return fenced ? fenced[1].trim() : text.trim()
-}
+import { chatCompletion, parseModelJSON, groqErrorMessage } from '@/lib/groq'
 
 interface DraftRequest {
   companyName: string
@@ -37,15 +28,12 @@ export async function POST(req: Request) {
       ? `${contactName}${contactRole ? `, ${contactRole}` : ''} at ${companyName}`
       : `a decision-maker at ${companyName}`
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+    const text = await chatCompletion({
+      maxTokens: 1024,
+      jsonMode: true,
       system:
         'You are an expert B2B sales copywriter. Write emails that feel human and specific, not templated. Always respond with valid JSON only — no markdown fences, no explanation.',
-      messages: [
-        {
-          role: 'user',
-          content: `Write a personalized cold outreach email from ${senderName || 'the sender'} (${senderRole || 'Sales Rep'}) to ${contactLine}.
+      user: `Write a personalized cold outreach email from ${senderName || 'the sender'} (${senderRole || 'Sales Rep'}) to ${contactLine}.
 
 Recent company news to reference: ${recentNews || 'not available'}
 
@@ -61,26 +49,16 @@ Rules:
 
 Return a JSON object with exactly these keys:
 - subject: string (a compelling subject line under 50 characters, no "Re:" or "Quick question")
-- body: string (the full email body, 3 paragraphs, no greeting/signature — those are added separately)
+- body: string (the full email body as one string; use \\n\\n between paragraphs — no literal line breaks inside the JSON string)
 
 Return only the JSON, nothing else.`,
-        },
-      ],
     })
 
-    const textBlock = response.content
-      .filter((b) => b.type === 'text')
-      .at(-1)
-
-    if (!textBlock || textBlock.type !== 'text') {
-      throw new Error('No text response received from Claude')
-    }
-
-    const draft = JSON.parse(extractJSON(textBlock.text))
+    const draft = parseModelJSON<{ subject: string; body: string }>(text)
     return NextResponse.json(draft)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Email drafting failed'
+    const { message, status } = groqErrorMessage(err)
     console.error('[/api/draft]', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message }, { status })
   }
 }

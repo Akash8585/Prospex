@@ -298,7 +298,7 @@ export default function Home() {
 
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 py-8 border-t border-hairline dark:border-[#3d3a36] mt-8">
         <p className="text-[13px] text-ink-faint dark:text-[#a39e98]">
-          Prospex — AI-powered B2B prospect research. Built with Claude Sonnet 4.6 + Notion API.
+          Prospex — AI-powered B2B prospect research. Built with Groq + Notion API.
         </p>
       </footer>
     </div>

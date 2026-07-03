@@ -2,7 +2,7 @@
 
 AI-powered B2B sales research agent. Paste a company name, get web-sourced intel, an ICP fit score, detected pain points, a personalized cold email draft — and optionally file it straight into your Notion CRM.
 
-Built with Next.js 14, Claude Sonnet 4.6 (web search), and the Notion API.
+Built with Next.js 14, [Groq](https://console.groq.com/), and the Notion API.
 
 ## Live demo
 
@@ -11,12 +11,12 @@ Built with Next.js 14, Claude Sonnet 4.6 (web search), and the Notion API.
 
 ## Screenshot
 
-<!-- Add a screenshot after recording your demo -->
-![Prospex agent console](./docs/screenshot.png)
+<!-- Add a screenshot after recording your demo and link it here -->
+**Screenshot:** _Add after demo recording_
 
 ## How it works
 
-1. **Research** — Claude searches the web for real-time company intel
+1. **Research** — Groq gathers company intel
 2. **Analyze** — Scores ICP fit (High / Medium / Low) and detects 3 pain points
 3. **Draft** — Writes a personalized cold email referencing researched details
 4. **File** — Creates a populated page in your Notion CRM database (optional)
@@ -26,7 +26,7 @@ Built with Next.js 14, Claude Sonnet 4.6 (web search), and the Notion API.
 ### Prerequisites
 
 - Node.js 18+
-- [Anthropic API key](https://console.anthropic.com/)
+- [Groq](https://console.groq.com/) API key
 - Notion integration + CRM database (optional, for Step 4)
 
 ### Setup
@@ -38,11 +38,14 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Add your Anthropic key to `.env.local`:
+Add your Groq credentials to `.env.local`:
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
+
+Get an API key at [console.groq.com/keys](https://console.groq.com/keys). Default model `llama-3.3-70b-versatile` is fast and free-tier friendly.
 
 Start the dev server:
 
@@ -68,16 +71,17 @@ Prospex writes to a Notion database at the end of each run. Setup takes ~5 minut
 
 ### 2. Create a CRM database
 
-Create a new database with these **exact column names**:
+Create a **blank Notion database** (table). Column setup is optional — Prospex creates these automatically on first run:
 
 | Column | Type | Options |
 |---|---|---|
-| Name | Title | — |
 | Status | Select | `Researched` |
 | Industry | Text | — |
 | Company size | Text | — |
 | ICP fit | Select | `High`, `Medium`, `Low` |
 | Research summary | Text | — |
+
+Your existing title column (e.g. "Title" or "Name") is used for the company name.
 
 ### 3. Share the database with your integration
 
@@ -110,17 +114,18 @@ Duplicate the template into your workspace, connect your integration, and use th
 
 | Variable | Where | Required |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | `.env.local` (server-side only) | Yes |
+| `GROQ_API_KEY` | `.env.local` | Yes |
+| `GROQ_MODEL` | `.env.local` | No — defaults to `llama-3.3-70b-versatile` |
 | Notion token | Browser input → sent to `/api/notion` | No (skips Notion write if blank) |
 | Notion database ID | Browser input → sent to `/api/notion` | No |
 
-The Anthropic key never reaches the browser. Notion credentials are sent per-request and not stored server-side.
+The Groq API key never reaches the browser — all AI calls go through server-side API routes. Notion credentials are sent per-request and not stored server-side.
 
 ## Deploy to Vercel
 
 1. Push this repo to GitHub
 2. Import the project at [vercel.com/new](https://vercel.com/new)
-3. Add environment variable: `ANTHROPIC_API_KEY`
+3. Add environment variables: `GROQ_API_KEY`, `GROQ_MODEL` (optional)
 4. Deploy
 
 ```bash
@@ -135,8 +140,7 @@ Notion credentials are entered by each user in the UI — no extra Vercel env va
 |---|---|
 | Framework | Next.js 14 (App Router) |
 | Frontend | React 18 + TypeScript + Tailwind CSS |
-| AI | Claude Sonnet 4.6 via Anthropic API |
-| Web search | Claude `web_search_20250305` tool |
+| AI | [Groq](https://console.groq.com/) — default model `llama-3.3-70b-versatile` |
 | CRM | Notion API v1 |
 | Deployment | Vercel |
 
@@ -150,7 +154,7 @@ app/
   api/draft/route.ts    # Step 3 — email draft
   api/notion/route.ts   # Step 4 — Notion write
 components/             # UI cards, status bar, results panel
-lib/                    # Shared types and demo data
+lib/                    # Shared types, Groq client, demo data
 ```
 
 ## Demo checklist
